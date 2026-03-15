@@ -5,15 +5,14 @@ from discord import app_commands
 from core.checks import require_staff
 
 
-class ConfigCog(commands.Cog):
+class ConfigGroup(app_commands.Group):
     def __init__(self, bot):
+        super().__init__(name="config", description="Configurações do RA Sentinel")
         self.bot = bot
 
-    config_group = app_commands.Group(name="config", description="Configurações do RA Sentinel")
-
-    @config_group.command(name="show", description="Mostra a configuração atual.")
+    @app_commands.command(name="show", description="Mostra a configuração atual.")
     @require_staff()
-    async def config_show(self, interaction: discord.Interaction):
+    async def show(self, interaction: discord.Interaction):
         if not interaction.guild:
             return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
 
@@ -62,10 +61,10 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @config_group.command(name="logs", description="Define o canal de logs.")
+    @app_commands.command(name="logs", description="Define o canal de logs.")
     @require_staff()
     @app_commands.describe(canal="Canal de logs")
-    async def config_logs(self, interaction: discord.Interaction, canal: discord.TextChannel):
+    async def logs(self, interaction: discord.Interaction, canal: discord.TextChannel):
         if not interaction.guild:
             return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
 
@@ -75,7 +74,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(f"✅ Canal de logs definido para {canal.mention}", ephemeral=True)
 
-    @config_group.command(name="antispam_toggle", description="Liga ou desliga o anti-spam.")
+    @app_commands.command(name="antispam_toggle", description="Liga ou desliga o anti-spam.")
     @require_staff()
     @app_commands.describe(estado="on ou off")
     async def antispam_toggle(self, interaction: discord.Interaction, estado: str):
@@ -92,7 +91,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(f"✅ Anti-spam agora está `{estado.upper()}`", ephemeral=True)
 
-    @config_group.command(name="antispam_limits", description="Ajusta os limites do anti-spam.")
+    @app_commands.command(name="antispam_limits", description="Ajusta os limites do anti-spam.")
     @require_staff()
     @app_commands.describe(
         flood_max_msgs="Máx de msgs (3-20)",
@@ -117,7 +116,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message("✅ Limites do anti-spam atualizados.", ephemeral=True)
 
-    @config_group.command(name="antispam_actions", description="Configura ações automáticas do anti-spam.")
+    @app_commands.command(name="antispam_actions", description="Configura ações automáticas do anti-spam.")
     @require_staff()
     @app_commands.describe(
         timeout_seconds="Timeout em segundos (0 desativa)",
@@ -143,7 +142,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message("✅ Ações automáticas atualizadas.", ephemeral=True)
 
-    @config_group.command(name="whitelist_add", description="Adiciona domínio à whitelist.")
+    @app_commands.command(name="whitelist_add", description="Adiciona domínio à whitelist.")
     @require_staff()
     @app_commands.describe(dominio="Ex: example.com")
     async def whitelist_add(self, interaction: discord.Interaction, dominio: str):
@@ -163,7 +162,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(f"✅ Domínio `{dominio}` adicionado.", ephemeral=True)
 
-    @config_group.command(name="whitelist_remove", description="Remove domínio da whitelist.")
+    @app_commands.command(name="whitelist_remove", description="Remove domínio da whitelist.")
     @require_staff()
     @app_commands.describe(dominio="Ex: example.com")
     async def whitelist_remove(self, interaction: discord.Interaction, dominio: str):
@@ -183,7 +182,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(f"✅ Domínio `{dominio}` removido.", ephemeral=True)
 
-    @config_group.command(name="ignore_channel_add", description="Ignora um canal no anti-spam.")
+    @app_commands.command(name="ignore_channel_add", description="Ignora um canal no anti-spam.")
     @require_staff()
     @app_commands.describe(canal="Canal a ignorar")
     async def ignore_channel_add(self, interaction: discord.Interaction, canal: discord.TextChannel):
@@ -199,7 +198,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(f"✅ Canal {canal.mention} ignorado no anti-spam.", ephemeral=True)
 
-    @config_group.command(name="ignore_channel_remove", description="Remove um canal da lista de ignorados.")
+    @app_commands.command(name="ignore_channel_remove", description="Remove um canal da lista de ignorados.")
     @require_staff()
     @app_commands.describe(canal="Canal a remover")
     async def ignore_channel_remove(self, interaction: discord.Interaction, canal: discord.TextChannel):
@@ -215,7 +214,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(f"✅ Canal {canal.mention} removido dos ignorados.", ephemeral=True)
 
-    @config_group.command(name="ignore_role_add", description="Ignora um cargo no anti-spam.")
+    @app_commands.command(name="ignore_role_add", description="Ignora um cargo no anti-spam.")
     @require_staff()
     @app_commands.describe(cargo="Cargo a ignorar")
     async def ignore_role_add(self, interaction: discord.Interaction, cargo: discord.Role):
@@ -231,7 +230,7 @@ class ConfigCog(commands.Cog):
 
         await interaction.response.send_message(f"✅ Cargo {cargo.mention} ignorado no anti-spam.", ephemeral=True)
 
-    @config_group.command(name="ignore_role_remove", description="Remove um cargo da lista de ignorados.")
+    @app_commands.command(name="ignore_role_remove", description="Remove um cargo da lista de ignorados.")
     @require_staff()
     @app_commands.describe(cargo="Cargo a remover")
     async def ignore_role_remove(self, interaction: discord.Interaction, cargo: discord.Role):
@@ -246,6 +245,12 @@ class ConfigCog(commands.Cog):
         self.bot.save_cfg(interaction.guild.id)
 
         await interaction.response.send_message(f"✅ Cargo {cargo.mention} removido dos ignorados.", ephemeral=True)
+
+
+class ConfigCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.config_group = ConfigGroup(bot)
 
 
 async def setup(bot):
