@@ -53,18 +53,23 @@ class EventsCog(commands.Cog):
             channel = member.guild.get_channel(welcome_channel_id)
             if isinstance(channel, discord.TextChannel):
                 embed = discord.Embed(
-                    title=f"👋 Bem-vindo(a), {member.display_name}!",
+                    title=f"👋 Bem-vindo(a), {member.name}!",
                     description=(
-                        f"Seja bem-vindo(a) à **RA Corporation**.\n\n"
-                        f"Esperamos que sua experiência em **{member.guild.name}** seja produtiva, organizada e marcante. 🚀"
+                        "Sinta-se em casa no servidor **RA Corporation**! 🚀\n\n"
+                        "Apresente-se e mostre quem você é!"
                     ),
                     color=discord.Color.blue(),
                     timestamp=discord.utils.utcnow()
                 )
 
-                avatar_url = member.display_avatar.url if member.display_avatar else member.default_avatar.url
-                embed.set_thumbnail(url=avatar_url)
-                embed.set_footer(text="RA Corporation • Sua jornada começa agora.")
+                embed.set_thumbnail(
+                    url=member.display_avatar.url if member.display_avatar else member.default_avatar.url
+                )
+
+                # Troque essa URL pela arte/banner oficial da RA Corporation
+                embed.set_image(url="https://i.imgur.com/kJEVaa8.png")
+
+                embed.set_footer(text="Seu crescimento começa agora • RA Corporation")
 
                 try:
                     await channel.send(embed=embed)
@@ -72,11 +77,11 @@ class EventsCog(commands.Cog):
                     pass
 
         await self.bot.send_log(
-            member.guild,
-            "📥 Membro entrou",
-            f"**Membro:** {member} (`{member.id}`)\n**Quando:** {human_ts(now_ts())}",
-            color=0x3498DB
-        )
+        member.guild,
+        "📥 Membro entrou",
+        f"**Membro:** {member} (`{member.id}`)\n**Quando:** {human_ts(now_ts())}",
+        color=0x3498DB
+    )
 
     # =========================================================
     # MEMBER REMOVE
