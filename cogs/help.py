@@ -37,6 +37,8 @@ class HelpView(discord.ui.View):
                 "• `/setup`\n"
                 "• `/config show`\n"
                 "• `/config logs`\n"
+                "• `/config leave_channel`\n"
+                "• `/config voice_log_channel`\n"
                 "• `/config antispam_toggle`\n"
                 "• `/config antispam_limits`\n"
                 "• `/config antispam_actions`\n"

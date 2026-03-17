@@ -4,6 +4,8 @@ from utils.storage import ensure_guild_dir, guild_config_file, load_json, save_j
 DEFAULT_GUILD_CONFIG = {
     "log_channel_id": None,
     "welcome_channel_id": None,
+    "leave_channel_id": None,
+    "voice_log_channel_id": None,
     "staff_category_id": None,
     "moderation": {
         "require_reason": False

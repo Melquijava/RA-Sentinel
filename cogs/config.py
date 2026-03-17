@@ -26,13 +26,17 @@ class ConfigGroup(app_commands.Group):
 
         logs_text = f"<#{cfg['log_channel_id']}>" if cfg.get("log_channel_id") else "`não definido`"
         welcome_text = f"<#{cfg['welcome_channel_id']}>" if cfg.get("welcome_channel_id") else "`não definido`"
+        leave_text = f"<#{cfg['leave_channel_id']}>" if cfg.get("leave_channel_id") else "`não definido`"
+        voice_log_text = f"<#{cfg['voice_log_channel_id']}>" if cfg.get("voice_log_channel_id") else "`não definido`"
         staff_text = f"<#{cfg['staff_category_id']}>" if cfg.get("staff_category_id") else "`não definida`"
 
         embed.add_field(
             name="Principais",
             value=(
-                f"**Logs:** {logs_text}\n"
+                f"**Logs gerais:** {logs_text}\n"
                 f"**Boas-vindas:** {welcome_text}\n"
+                f"**Saída:** {leave_text}\n"
+                f"**Logs de voz:** {voice_log_text}\n"
                 f"**Categoria Staff:** {staff_text}"
             ),
             inline=False
@@ -245,7 +249,32 @@ class ConfigGroup(app_commands.Group):
         self.bot.save_cfg(interaction.guild.id)
 
         await interaction.response.send_message(f"✅ Cargo {cargo.mention} removido dos ignorados.", ephemeral=True)
+        
+    @app_commands.command(name="leave_channel", description="Define o canal de saída.")
+    @require_staff()
+    @app_commands.describe(canal="Canal de saída")
+    async def leave_channel(self, interaction: discord.Interaction, canal: discord.TextChannel):
+        if not interaction.guild:
+            return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
 
+        cfg = self.bot.get_cfg(interaction.guild.id)
+        cfg["leave_channel_id"] = canal.id
+        self.bot.save_cfg(interaction.guild.id)
+
+        await interaction.response.send_message(f"✅ Canal de saída definido para {canal.mention}", ephemeral=True)
+        
+    @app_commands.command(name="voice_log_channel", description="Define o canal de logs de voz.")
+    @require_staff()
+    @app_commands.describe(canal="Canal de logs de voz")
+    async def voice_log_channel(self, interaction: discord.Interaction, canal: discord.TextChannel):
+        if not interaction.guild:
+            return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
+
+        cfg = self.bot.get_cfg(interaction.guild.id)
+        cfg["voice_log_channel_id"] = canal.id
+        self.bot.save_cfg(interaction.guild.id)
+
+        await interaction.response.send_message(f"✅ Canal de logs de voz definido para {canal.mention}", ephemeral=True)
 
 class ConfigCog(commands.Cog):
     def __init__(self, bot):

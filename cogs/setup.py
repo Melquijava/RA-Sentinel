@@ -97,6 +97,22 @@ class SetupMainView(discord.ui.View):
     def __init__(self, bot):
         super().__init__(timeout=None)
         self.bot = bot
+        
+    @discord.ui.button(label="Canal de Saída", style=discord.ButtonStyle.primary, emoji="📤", custom_id="setup_leave")
+    async def setup_leave(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "Selecione o canal de saída:",
+            view=ChannelSelectView(self.bot, "leave_channel_id", "Canal de Saída", [discord.ChannelType.text]),
+            ephemeral=True
+    )
+        
+    @discord.ui.button(label="Log de Voz", style=discord.ButtonStyle.secondary, emoji="🎙️", custom_id="setup_voice_log")
+    async def setup_voice_log(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "Selecione o canal de logs de voz:",
+            view=ChannelSelectView(self.bot, "voice_log_channel_id", "Log de Voz", [discord.ChannelType.text]),
+            ephemeral=True
+    )
 
     @discord.ui.button(label="Canal de Logs", style=discord.ButtonStyle.primary, emoji="📝", custom_id="setup_logs")
     async def setup_logs(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -167,6 +183,8 @@ class SetupCog(commands.Cog):
                 "Configure este servidor pelos botões abaixo.\n\n"
                 "• Canal de logs\n"
                 "• Canal de boas-vindas\n"
+                "• Canal de saída\n"
+                "• Canal de logs de voz\n"
                 "• Categoria staff\n"
                 "• Canais ignorados\n"
                 "• Cargos ignorados\n"
