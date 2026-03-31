@@ -29,6 +29,7 @@ class ConfigGroup(app_commands.Group):
         leave_text = f"<#{cfg['leave_channel_id']}>" if cfg.get("leave_channel_id") else "`não definido`"
         voice_log_text = f"<#{cfg['voice_log_channel_id']}>" if cfg.get("voice_log_channel_id") else "`não definido`"
         staff_text = f"<#{cfg['staff_category_id']}>" if cfg.get("staff_category_id") else "`não definida`"
+        welcome_image_text = cfg.get("welcome_image_url") or "`padrão da RA Corporation`"
 
         embed.add_field(
             name="Principais",
@@ -48,6 +49,7 @@ class ConfigGroup(app_commands.Group):
         embed.add_field(name="Links", value="ON" if asp.get("block_suspicious_links", True) else "OFF", inline=True)
         embed.add_field(name="Caps", value="ON" if asp.get("caps_enabled", True) else "OFF", inline=True)
         embed.add_field(name="Timeout Auto", value=f"{asp.get('action_timeout_seconds')}s", inline=True)
+        embed.add_field(name="Imagem de boas-vindas", value=welcome_image_text, inline=False)
 
         ignored_channels = asp.get("ignored_channels", [])
         ignored_roles = asp.get("ignored_roles", [])
@@ -275,6 +277,51 @@ class ConfigGroup(app_commands.Group):
         self.bot.save_cfg(interaction.guild.id)
 
         await interaction.response.send_message(f"✅ Canal de logs de voz definido para {canal.mention}", ephemeral=True)
+        
+    @app_commands.command(name="welcome_image", description="Define a imagem da embed de boas-vindas.")
+    @require_staff()
+    @app_commands.describe(url="URL da imagem que será usada na boas-vindas")
+    async def welcome_image(self, interaction: discord.Interaction, url: str):
+        if not interaction.guild:
+            return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
+
+        url = url.strip()
+
+        if not (
+            url.startswith("http://") or url.startswith("https://")
+        ):
+            return await interaction.response.send_message(
+                "❌ Envie uma URL válida começando com `http://` ou `https://`.",
+                ephemeral=True
+            )
+
+        cfg = self.bot.get_cfg(interaction.guild.id)
+        cfg["welcome_image_url"] = url
+        self.bot.save_cfg(interaction.guild.id)
+
+        embed = discord.Embed(
+            title="✅ Imagem de boas-vindas atualizada",
+            description="A nova imagem da embed de boas-vindas foi salva com sucesso.",
+            color=discord.Color.green()
+        )
+        embed.set_image(url=url)
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        
+    @app_commands.command(name="welcome_image_reset", description="Remove a imagem personalizada da boas-vindas.")
+    @require_staff()
+    async def welcome_image_reset(self, interaction: discord.Interaction):
+        if not interaction.guild:
+            return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
+
+        cfg = self.bot.get_cfg(interaction.guild.id)
+        cfg["welcome_image_url"] = None
+        self.bot.save_cfg(interaction.guild.id)
+
+        await interaction.response.send_message(
+            "✅ A imagem personalizada da boas-vindas foi removida. Agora o bot usará a imagem padrão da RA Corporation.",
+            ephemeral=True
+        )
 
 class ConfigCog(commands.Cog):
     def __init__(self, bot):

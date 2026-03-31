@@ -66,10 +66,11 @@ class EventsCog(commands.Cog):
                     url=member.display_avatar.url if member.display_avatar else member.default_avatar.url
                 )
 
-                embed.set_image(url="https://i.imgur.com/kJEVao8.png")
+                welcome_image_url = cfg.get("welcome_image_url") or "https://i.imgur.com/kJEVao8.png"
+                embed.set_image(url=welcome_image_url)
 
                 embed.set_footer(
-                    text=f"Seu crescimento começa agora • **RA Corporation**"
+                    text=f"Seu crescimento começa agora • Desenvolvido por **RA Corporation**"
                 )
 
                 try:

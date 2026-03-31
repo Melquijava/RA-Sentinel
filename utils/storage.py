@@ -1,3 +1,4 @@
+import shutil
 import os
 import json
 from typing import Any
@@ -5,6 +6,18 @@ from typing import Any
 DATA_DIR = os.getenv("DATA_DIR", "./data")
 GUILDS_DIR = os.path.join(DATA_DIR, "guilds")
 
+def save_json(path: str, data: Any):
+    if os.path.exists(path):
+        backup_path = path + ".bak"
+        try:
+            shutil.copy2(path, backup_path)
+        except Exception:
+            pass
+
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
 
 def ensure_base_dirs():
     os.makedirs(GUILDS_DIR, exist_ok=True)

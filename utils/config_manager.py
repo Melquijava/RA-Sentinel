@@ -7,6 +7,7 @@ DEFAULT_GUILD_CONFIG = {
     "leave_channel_id": None,
     "voice_log_channel_id": None,
     "staff_category_id": None,
+    "welcome_image_url": None,
     "moderation": {
         "require_reason": False
     },
@@ -39,10 +40,21 @@ class ConfigManager:
         if guild_id not in self.cache:
             ensure_guild_dir(guild_id)
             path = guild_config_file(guild_id)
-            data = load_json(path, DEFAULT_GUILD_CONFIG)
-            merged = deep_merge(DEFAULT_GUILD_CONFIG, data)
+
+            existing = load_json(path, None)
+
+            if existing is None:
+                merged = DEFAULT_GUILD_CONFIG.copy()
+                save_json(path, merged)
+            else:
+                merged = deep_merge(DEFAULT_GUILD_CONFIG, existing)
+
+                # Só salva se realmente precisou adicionar campos novos
+                if merged != existing:
+                    save_json(path, merged)
+
             self.cache[guild_id] = merged
-            save_json(path, merged)
+
         return self.cache[guild_id]
 
     def save(self, guild_id: int):
