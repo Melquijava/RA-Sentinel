@@ -55,7 +55,7 @@ class EventsCog(commands.Cog):
                 embed = discord.Embed(
                     title=f"👋 Bem-vindo(a), {member.name}!",
                     description=(
-                        "Sinta-se em casa no servidor **RA Corporation**! 🚀\n\n"
+                        f"Sinta-se em casa no servidor **{member.guild.name}**! 🚀\n\n"
                         "Apresente-se e mostre quem você é!"
                     ),
                     color=discord.Color.blue(),
@@ -66,10 +66,11 @@ class EventsCog(commands.Cog):
                     url=member.display_avatar.url if member.display_avatar else member.default_avatar.url
                 )
 
-                # Troque essa URL pela arte/banner oficial da RA Corporation
-                embed.set_image(url="https://i.imgur.com/kJEVaa8.png")
+                embed.set_image(url="https://i.imgur.com/kJEVao8.png")
 
-                embed.set_footer(text="Seu crescimento começa agora • RA Corporation")
+                embed.set_footer(
+                    text=f"Seu crescimento começa agora • **RA Corporation**"
+                )
 
                 try:
                     await channel.send(embed=embed)
@@ -77,11 +78,11 @@ class EventsCog(commands.Cog):
                     pass
 
         await self.bot.send_log(
-        member.guild,
-        "📥 Membro entrou",
-        f"**Membro:** {member} (`{member.id}`)\n**Quando:** {human_ts(now_ts())}",
-        color=0x3498DB
-    )
+            member.guild,
+            "📥 Membro entrou",
+            f"**Membro:** {member} (`{member.id}`)\n**Quando:** {human_ts(now_ts())}",
+            color=0x3498DB
+        )
 
     # =========================================================
     # MEMBER REMOVE

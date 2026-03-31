@@ -2,7 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from core.checks import require_staff
+from core.checks import require_staff, is_staff
+
+
+def deny_non_staff():
+    return "❌ Apenas membros da staff podem usar este painel."
 
 
 class ChannelSelect(discord.ui.ChannelSelect):
@@ -20,6 +24,9 @@ class ChannelSelect(discord.ui.ChannelSelect):
     async def callback(self, interaction: discord.Interaction):
         if not interaction.guild:
             return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
+
+        if not is_staff(interaction):
+            return await interaction.response.send_message(deny_non_staff(), ephemeral=True)
 
         channel = self.values[0]
         cfg = self.bot.get_cfg(interaction.guild.id)
@@ -52,12 +59,18 @@ class IgnoredChannelsSelect(discord.ui.ChannelSelect):
         if not interaction.guild:
             return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
 
+        if not is_staff(interaction):
+            return await interaction.response.send_message(deny_non_staff(), ephemeral=True)
+
         cfg = self.bot.get_cfg(interaction.guild.id)
         cfg["antispam"]["ignored_channels"] = [c.id for c in self.values]
         self.bot.save_cfg(interaction.guild.id)
 
         canais = ", ".join(c.mention for c in self.values) if self.values else "nenhum"
-        await interaction.response.send_message(f"✅ Canais ignorados atualizados: {canais}", ephemeral=True)
+        await interaction.response.send_message(
+            f"✅ Canais ignorados atualizados: {canais}",
+            ephemeral=True
+        )
 
 
 class IgnoredChannelsView(discord.ui.View):
@@ -79,12 +92,18 @@ class IgnoredRolesSelect(discord.ui.RoleSelect):
         if not interaction.guild:
             return await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
 
+        if not is_staff(interaction):
+            return await interaction.response.send_message(deny_non_staff(), ephemeral=True)
+
         cfg = self.bot.get_cfg(interaction.guild.id)
         cfg["antispam"]["ignored_roles"] = [r.id for r in self.values]
         self.bot.save_cfg(interaction.guild.id)
 
         cargos = ", ".join(r.mention for r in self.values) if self.values else "nenhum"
-        await interaction.response.send_message(f"✅ Cargos ignorados atualizados: {cargos}", ephemeral=True)
+        await interaction.response.send_message(
+            f"✅ Cargos ignorados atualizados: {cargos}",
+            ephemeral=True
+        )
 
 
 class IgnoredRolesView(discord.ui.View):
@@ -97,22 +116,17 @@ class SetupMainView(discord.ui.View):
     def __init__(self, bot):
         super().__init__(timeout=None)
         self.bot = bot
-        
-    @discord.ui.button(label="Canal de Saída", style=discord.ButtonStyle.primary, emoji="📤", custom_id="setup_leave")
-    async def setup_leave(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "Selecione o canal de saída:",
-            view=ChannelSelectView(self.bot, "leave_channel_id", "Canal de Saída", [discord.ChannelType.text]),
-            ephemeral=True
-    )
-        
-    @discord.ui.button(label="Log de Voz", style=discord.ButtonStyle.secondary, emoji="🎙️", custom_id="setup_voice_log")
-    async def setup_voice_log(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "Selecione o canal de logs de voz:",
-            view=ChannelSelectView(self.bot, "voice_log_channel_id", "Log de Voz", [discord.ChannelType.text]),
-            ephemeral=True
-    )
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if not interaction.guild:
+            await interaction.response.send_message("Use isso em um servidor.", ephemeral=True)
+            return False
+
+        if not is_staff(interaction):
+            await interaction.response.send_message(deny_non_staff(), ephemeral=True)
+            return False
+
+        return True
 
     @discord.ui.button(label="Canal de Logs", style=discord.ButtonStyle.primary, emoji="📝", custom_id="setup_logs")
     async def setup_logs(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -127,6 +141,22 @@ class SetupMainView(discord.ui.View):
         await interaction.response.send_message(
             "Selecione o canal de boas-vindas:",
             view=ChannelSelectView(self.bot, "welcome_channel_id", "Canal de Boas-vindas", [discord.ChannelType.text]),
+            ephemeral=True
+        )
+
+    @discord.ui.button(label="Canal de Saída", style=discord.ButtonStyle.primary, emoji="📤", custom_id="setup_leave")
+    async def setup_leave(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "Selecione o canal de saída:",
+            view=ChannelSelectView(self.bot, "leave_channel_id", "Canal de Saída", [discord.ChannelType.text]),
+            ephemeral=True
+        )
+
+    @discord.ui.button(label="Log de Voz", style=discord.ButtonStyle.secondary, emoji="🎙️", custom_id="setup_voice_log")
+    async def setup_voice_log(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            "Selecione o canal de logs de voz:",
+            view=ChannelSelectView(self.bot, "voice_log_channel_id", "Log de Voz", [discord.ChannelType.text]),
             ephemeral=True
         )
 
@@ -156,15 +186,12 @@ class SetupMainView(discord.ui.View):
 
     @discord.ui.button(label="Anti-Spam ON/OFF", style=discord.ButtonStyle.success, emoji="🚫", custom_id="setup_antispam_toggle")
     async def toggle_antispam(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not interaction.guild:
-            return await interaction.response.send_message("Use isso dentro de um servidor.", ephemeral=True)
-
         cfg = self.bot.get_cfg(interaction.guild.id)
         cfg["antispam"]["enabled"] = not cfg["antispam"].get("enabled", True)
         self.bot.save_cfg(interaction.guild.id)
 
         await interaction.response.send_message(
-            f"✅ Anti-spam agora está `{ 'ON' if cfg['antispam']['enabled'] else 'OFF' }`",
+            f"✅ Anti-spam agora está `{'ON' if cfg['antispam']['enabled'] else 'OFF'}`",
             ephemeral=True
         )
 
@@ -174,25 +201,32 @@ class SetupCog(commands.Cog):
         self.bot = bot
         self.bot.add_view(SetupMainView(bot))
 
-    @app_commands.command(name="setup", description="Abre o painel de setup do bot.")
+    @app_commands.command(name="setup", description="Envia o painel público de setup do bot.")
     @require_staff()
     async def setup_cmd(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="⚙️ RA Sentinel — Setup",
+            title="⚙️ RA Sentinel — Painel de Controle",
             description=(
-                "Configure este servidor pelos botões abaixo.\n\n"
+                "Este painel pode ficar fixado neste canal para gerenciamento do servidor.\n\n"
+                "**Configurações disponíveis:**\n"
                 "• Canal de logs\n"
                 "• Canal de boas-vindas\n"
                 "• Canal de saída\n"
                 "• Canal de logs de voz\n"
                 "• Categoria staff\n"
-                "• Canais ignorados\n"
-                "• Cargos ignorados\n"
-                "• Ligar/desligar anti-spam"
+                "• Canais ignorados no anti-spam\n"
+                "• Cargos ignorados no anti-spam\n"
+                "• Ligar/desligar anti-spam\n\n"
+                "A mensagem é pública, mas apenas a staff pode usar os botões."
             ),
             color=discord.Color.blurple()
         )
-        await interaction.response.send_message(embed=embed, view=SetupMainView(self.bot), ephemeral=True)
+        embed.set_footer(text="RA Sentinel • Painel público de controle")
+
+        await interaction.response.send_message(
+            embed=embed,
+            view=SetupMainView(self.bot)
+        )
 
 
 async def setup(bot):
